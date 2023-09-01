@@ -146,9 +146,9 @@ function App() {
         <div className="overflow-hidden absolute z-50 bottom-0 text-[0.2em]">
           <span
             className={cn(
-              "tracking-[0.2em] block transition-transform duration-700 ease-out",
+              "tracking-[0.2em] block transition-transform ease-out",
               {
-                "translate-y-0": isFinish,
+                "translate-y-0 duration-700": isFinish,
                 "text-red": mistakes > 0,
                 "translate-y-full duration-0": !isFinish,
                 "text-green": mistakes == 0,
