@@ -25,7 +25,6 @@ function App() {
         "--vH",
         `${window.innerHeight * 0.01}px`
       );
-      console.log(window.innerHeight, window.outerHeight);
     }
 
     onResize();
@@ -43,6 +42,12 @@ function App() {
     function handleTyping({ key, ctrlKey }: { key: string; ctrlKey: boolean }) {
       const letter = key.toLowerCase();
       const index = letter.charCodeAt(0) - 97;
+
+      console.log(
+        ctrlKey,
+        isFinish,
+        !(index >= 0 && letter === alphabets[index].toLowerCase())
+      );
 
       if (
         ctrlKey ||
@@ -102,6 +107,7 @@ function App() {
   function handlePlayOrRefresh(): void {
     if (isTyping) {
       step.current = 0;
+      setMistakes(0);
       setIsTyping(false);
       setIsFinish(false);
       clearInterval(timestamp.current);
@@ -144,7 +150,7 @@ function App() {
               {
                 "translate-y-0": isFinish,
                 "text-red": mistakes > 0,
-                "translate-y-full": !isFinish,
+                "translate-y-full duration-0": !isFinish,
                 "text-green": mistakes == 0,
               }
             )}
