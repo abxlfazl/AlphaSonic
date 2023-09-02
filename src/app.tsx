@@ -91,10 +91,10 @@ function App() {
       timestamp.current = setInterval(() => {
         if (timerSecRef.current && timerMilliSecRef.current) {
           elapsedTime = Date.now() - startTime;
-          const [sec, milliSec] = `${(elapsedTime / 1000) % 60}`.split(".");
+          const [sec, milliSec] = `${elapsedTime / 1000}`.split(".");
 
-          timerSecRef.current.textContent = `0${sec}`.slice(-2);
-          timerMilliSecRef.current.textContent = `0${milliSec}`.slice(-2);
+          timerSecRef.current.textContent = Number(sec) < 10 ? `0${sec}` : sec;
+          timerMilliSecRef.current.textContent = `${milliSec}`.slice(0, 2);
         }
       });
     }
