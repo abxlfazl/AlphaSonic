@@ -21,11 +21,9 @@ export default {
       backgroundImage: (theme) => ({
         "gradient-primary": `linear-gradient(to right, ${theme(
           "colors.main.DEFAULT"
-        )} -10%, ${theme(
-          "colors.main.light"
-        )} calc(50% - 0.5em), transparent 0, transparent calc(50% + 0.5em) ,${theme(
-          "colors.main.light"
-        )} 0 , ${theme("colors.main.DEFAULT")} 110% )`,
+        )}, transparent calc(50% - 0.5em), transparent calc(50% + 0.5em) ,${theme(
+          "colors.main.DEFAULT"
+        )})`,
       }),
       minHeight: {
         screen: "calc(var(--vH,1vh)*100)",

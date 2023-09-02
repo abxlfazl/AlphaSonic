@@ -130,9 +130,10 @@ function App() {
           <div
             ref={wrapperRef}
             className={cn(
-              "flex w-max text-center -translate-x-[calc(1em*var(--step,0))] transition-opacity duration-300 ease-out",
+              "flex w-max text-center -translate-x-[calc(1em*var(--step,0))] duration-300 transition-[opacity] ease-out",
               {
                 "opacity-0": isFinish,
+                "duration-300 transition-[transform]": isTyping && !isFinish,
               }
             )}
           >
@@ -168,11 +169,11 @@ function App() {
           }
         )}
       >
-        <span ref={timerSecRef} className="em:w-8 text-right">
+        <span ref={timerSecRef} className="em:w-6 text-center">
           00
         </span>
-        <span className="em:mx-1">:</span>
-        <span ref={timerMilliSecRef} className="em:w-8 text-left">
+        <span className="">:</span>
+        <span ref={timerMilliSecRef} className="em:w-6 text-center">
           00
         </span>
       </div>
