@@ -25,7 +25,7 @@ export const Timer = forwardRef<TimerRef, Props>(
           timerMillisecondRef.current!.textContent = "00";
         },
         finish: () => {
-          if (timestamp.current) clearTimeout(timestamp.current);
+          if (timestamp.current != null) clearTimeout(timestamp.current);
         },
       };
     });
@@ -49,7 +49,7 @@ export const Timer = forwardRef<TimerRef, Props>(
           }
         });
       }
-    });
+    }, []);
 
     return (
       <div
