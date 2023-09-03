@@ -49,22 +49,22 @@ export const Timer = forwardRef<TimerRef, Props>(
           }
         });
       }
-    }, []);
+    }, [isTyping, isFinish]);
 
     return (
       <div
         className={cn(
-          "em:text-7xl z-50 w-max mx-auto flex transition-transform duration-700 ease-out",
+          "em:text-7xl z-50 w-max mx-auto flex transition-transform duration-700 ease-out text-center",
           {
             "em:-translate-y-10 scale-150": isFinish,
           }
         )}
       >
-        <span ref={timerSecRef} className="em:w-6 text-center">
+        <span ref={timerSecRef} className="em:w-6">
           00
         </span>
-        <span className="">:</span>
-        <span ref={timerMillisecondRef} className="em:w-6 text-center">
+        <span>:</span>
+        <span ref={timerMillisecondRef} className="em:w-6">
           00
         </span>
       </div>
