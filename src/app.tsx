@@ -1,19 +1,17 @@
-import { useEffect, useRef, useState } from "preact/hooks";
 import cn from "classnames";
+import { useEffect, useRef, useState } from "preact/hooks";
 
 import { alphabets } from "./constants/Alphabets";
+import { Timer, TimerRef } from "./Timer";
 
 function App() {
   const step = useRef(0);
-  const timestamp = useRef(0);
   const [mistakes, setMistakes] = useState(0);
-  const timerRef = useRef<HTMLDivElement>(null);
   const [isFinish, setIsFinish] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const letters = useRef<Array<HTMLSpanElement>>();
-  const timerSecRef = useRef<HTMLSpanElement>(null);
-  const timerMilliSecRef = useRef<HTMLSpanElement>(null);
+  const timer = useRef<TimerRef>(null);
 
   useEffect(() => {
     letters.current = Array.from(
@@ -43,19 +41,12 @@ function App() {
       const letter = key.toLowerCase();
       const index = letter.charCodeAt(0) - 97;
 
-      console.log(
-        ctrlKey,
-        isFinish,
-        !(index >= 0 && letter === alphabets[index].toLowerCase())
-      );
-
       if (
         ctrlKey ||
         isFinish ||
         !(index >= 0 && letter === alphabets[index].toLowerCase())
-      ) {
+      )
         return;
-      }
 
       ++step.current;
 
@@ -76,28 +67,13 @@ function App() {
 
       if (step.current > 25) {
         setIsFinish(true);
-        clearTimeout(timestamp.current);
+        timer.current?.finish();
       } else if (!isTyping) {
         setIsTyping(true);
       }
     }
 
     window.addEventListener("keydown", handleTyping);
-
-    if (isTyping && !isFinish) {
-      let elapsedTime = 0;
-      const startTime = Date.now() - elapsedTime;
-
-      timestamp.current = setInterval(() => {
-        if (timerSecRef.current && timerMilliSecRef.current) {
-          elapsedTime = Date.now() - startTime;
-          const [sec, milliSec] = `${elapsedTime / 1000}`.split(".");
-
-          timerSecRef.current.textContent = Number(sec) < 10 ? `0${sec}` : sec;
-          timerMilliSecRef.current.textContent = `${milliSec}`.slice(0, 2);
-        }
-      });
-    }
 
     return () => {
       window.removeEventListener("keydown", handleTyping);
@@ -110,13 +86,12 @@ function App() {
       setMistakes(0);
       setIsTyping(false);
       setIsFinish(false);
-      clearInterval(timestamp.current);
+      timer.current?.finish();
       wrapperRef.current?.style.setProperty("--step", "0");
       letters.current?.forEach((el) => {
         el.style.setProperty("color", "");
       });
-      timerSecRef.current!.textContent = "00";
-      timerMilliSecRef.current!.textContent = "00";
+      timer.current?.reset();
     } else {
       setIsTyping(true);
     }
@@ -160,23 +135,7 @@ function App() {
           </span>
         </div>
       </div>
-      <div
-        ref={timerRef}
-        className={cn(
-          "em:text-7xl z-50 w-max mx-auto flex transition-transform duration-700 ease-out",
-          {
-            "em:-translate-y-10 scale-150": isFinish,
-          }
-        )}
-      >
-        <span ref={timerSecRef} className="em:w-6 text-center">
-          00
-        </span>
-        <span className="">:</span>
-        <span ref={timerMilliSecRef} className="em:w-6 text-center">
-          00
-        </span>
-      </div>
+      <Timer isFinish={isFinish} isTyping={isTyping} ref={timer} />
 
       <button className="mx-auto em:mt-7" onClick={handlePlayOrRefresh}>
         <img
