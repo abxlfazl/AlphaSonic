@@ -4,7 +4,7 @@ import { useEffect, useImperativeHandle, useRef } from "preact/hooks";
 
 interface Props {
   isTyping: boolean;
-  isFinish: boolean;
+  isFinished: boolean;
 }
 
 export interface TimerRef {
@@ -13,7 +13,7 @@ export interface TimerRef {
 }
 
 export const Timer = forwardRef<TimerRef, Props>(
-  ({ isTyping, isFinish }, ref) => {
+  ({ isTyping, isFinished }, ref) => {
     const timerSecRef = useRef<HTMLSpanElement>(null);
     const timerMillisecondRef = useRef<HTMLSpanElement>(null);
     const timestamp = useRef<number | null>(null);
@@ -31,7 +31,7 @@ export const Timer = forwardRef<TimerRef, Props>(
     });
 
     useEffect(() => {
-      if (isTyping && !isFinish) {
+      if (isTyping) {
         let elapsedTime = 0;
         const startTime = Date.now() - elapsedTime;
 
@@ -49,14 +49,14 @@ export const Timer = forwardRef<TimerRef, Props>(
           }
         });
       }
-    }, [isTyping, isFinish]);
+    }, [isTyping]);
 
     return (
       <div
         className={cn(
           "em:text-7xl z-50 w-max mx-auto flex transition-transform duration-700 ease-out text-center",
           {
-            "em:-translate-y-10 scale-150": isFinish,
+            "em:-translate-y-10 scale-150": isFinished,
           }
         )}
       >

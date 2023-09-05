@@ -4,19 +4,27 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { alphabets } from "./constants/Alphabets";
 import { Timer, TimerRef } from "./Timer";
 
+type Status = "idle" | "typing" | "finished";
+
 function App() {
   const step = useRef(0);
   const [mistakes, setMistakes] = useState(0);
-  const [isFinish, setIsFinish] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
+  const [status, setStatus] = useState<Status>("idle");
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const letters = useRef<Array<HTMLSpanElement>>();
+  const lettersEle = useRef<Array<HTMLSpanElement>>();
   const timer = useRef<TimerRef>(null);
+  const isIdle = status === "idle";
+  const isTyping = status === "typing";
+  const isFinished = status === "finished";
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    letters.current = Array.from(
+    lettersEle.current = Array.from(
       wrapperRef.current?.children as HTMLCollectionOf<HTMLSpanElement>
     );
+
+    setIsMobile(window.matchMedia("screen and (hover: none)").matches);
 
     function onResize() {
       document.documentElement.style.setProperty(
@@ -36,64 +44,58 @@ function App() {
     };
   }, []);
 
-  useEffect(() => {
-    function handleTyping({ key, ctrlKey }: { key: string; ctrlKey: boolean }) {
-      const letter = key.toLowerCase();
-      const index = letter.charCodeAt(0) - 97;
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const target = e.currentTarget;
+    const key = target.value.slice(-1);
+    const letter = key.toLowerCase();
+    const index = letter.charCodeAt(0) - 97;
 
-      if (
-        ctrlKey ||
-        isFinish ||
-        !(index >= 0 && letter === alphabets[index].toLowerCase())
-      )
-        return;
+    if (isFinished || !(index >= 0 && letter === alphabets[index])) return;
 
-      ++step.current;
+    ++step.current;
 
-      wrapperRef.current?.style.setProperty(
-        "--step",
-        `${Math.min(step.current, 25)}`
+    wrapperRef.current?.style.setProperty(
+      "--step",
+      `${Math.min(step.current, alphabets.length - 1)}`
+    );
+
+    if (step.current === index + 1) {
+      lettersEle.current![index].style.setProperty("color", "#9AFECE");
+    } else {
+      lettersEle.current![step.current - 1].style.setProperty(
+        "color",
+        "#FF7575"
       );
-
-      if (step.current === index + 1) {
-        letters.current![index].style.setProperty("color", "#9AFECE");
-      } else {
-        letters.current![step.current - 1].style.setProperty(
-          "color",
-          "#FF7575"
-        );
-        setMistakes((prevState) => ++prevState);
-      }
-
-      if (step.current > 25) {
-        setIsFinish(true);
-        timer.current?.finish();
-      } else if (!isTyping) {
-        setIsTyping(true);
-      }
+      setMistakes((prevState) => ++prevState);
     }
 
-    window.addEventListener("keydown", handleTyping);
+    if (step.current === alphabets.length) {
+      setStatus("finished");
+      timer.current?.finish();
+      target.blur();
+      target.value = "";
+    } else if (!isTyping) {
+      setStatus("typing");
+    }
+  };
 
-    return () => {
-      window.removeEventListener("keydown", handleTyping);
-    };
-  }, [isTyping, isFinish]);
+  function onBlur() {
+    if (!isMobile) inputRef.current?.focus();
+  }
 
-  function handlePlayOrRefresh(): void {
-    if (isTyping) {
+  function handlePlayOrReset() {
+    if (!isIdle) {
       step.current = 0;
       setMistakes(0);
-      setIsTyping(false);
-      setIsFinish(false);
+      setStatus("idle");
       timer.current?.finish();
       wrapperRef.current?.style.setProperty("--step", "0");
-      letters.current?.forEach((el) => {
+      lettersEle.current?.forEach((el) => {
         el.style.setProperty("color", "");
       });
       timer.current?.reset();
     } else {
-      setIsTyping(true);
+      inputRef.current?.focus();
     }
   }
 
@@ -101,19 +103,19 @@ function App() {
     <main className="text-[3vw] landscape:text-[1.17vw] h-screen flex flex-col justify-center">
       <div class="flex text-[15em] relative justify-center">
         <div className="w-full h-full absolute z-10 bg-gradient-primary" />
-        <div className="w-[calc(50%+0.5em)] ml-auto">
+        <div className="w-[calc(50%+0.5em)] ml-auto z-10">
           <div
             ref={wrapperRef}
             className={cn(
               "flex w-max text-center -translate-x-[calc(1em*var(--step,0))] duration-300 transition-[opacity] ease-out",
               {
-                "opacity-0": isFinish,
-                "duration-300 transition-[transform]": isTyping && !isFinish,
+                "opacity-0": isFinished,
+                "duration-300 transition-[transform]": isTyping && !isFinished,
               }
             )}
           >
             {alphabets.map((letter) => (
-              <span key={letter} className="em:w-4">
+              <span key={letter} className="em:w-4 uppercase">
                 {letter}
               </span>
             ))}
@@ -124,9 +126,9 @@ function App() {
             className={cn(
               "tracking-[0.2em] block transition-transform ease-out",
               {
-                "translate-y-0 duration-700": isFinish,
+                "translate-y-0 duration-700": isFinished,
                 "text-red": mistakes > 0,
-                "translate-y-full duration-0": !isFinish,
+                "translate-y-full duration-0": !isFinished,
                 "text-green": mistakes == 0,
               }
             )}
@@ -134,13 +136,37 @@ function App() {
             {mistakes > 0 ? `Mistakes : ${mistakes}` : "Perfect"}
           </span>
         </div>
+        <input
+          value=""
+          autoFocus
+          ref={inputRef}
+          onBlur={onBlur}
+          onChange={onChange}
+          maxLength={alphabets.length}
+          className=" absolute top-1/2 h-[0.2em] left-0 right-0  opacity-0"
+        />
       </div>
-      <Timer isFinish={isFinish} isTyping={isTyping} ref={timer} />
-
-      <button className="mx-auto em:mt-7" onClick={handlePlayOrRefresh}>
+      <Timer isFinished={isFinished} isTyping={isTyping} ref={timer} />
+      <button
+        className={cn("mx-auto em:mt-7 flex items-center justify-center", {
+          "pointer-events-none": isIdle && !isMobile,
+        })}
+        onClick={handlePlayOrReset}
+      >
+        {!isMobile && (
+          <span
+            className={cn("em:text-3xl absolute", {
+              "opacity-0": !isIdle,
+            })}
+          >
+            press A
+          </span>
+        )}
         <img
-          className="em:w-10"
-          src={isTyping ? "./refresh.png" : "./play.png"}
+          className={cn("em:w-10", {
+            "opacity-0": !isMobile && isIdle,
+          })}
+          src={isMobile && isIdle ? "./play.png" : "./refresh.png"}
         />
       </button>
     </main>
